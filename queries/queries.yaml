@@ -1,0 +1,11 @@
+sensor_readings:
+  create: |
+    CREATE TABLE IF NOT EXISTS sensor_readings (
+      id INTEGER PRIMARY KEY,
+      topic TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  insert: |
+    INSERT INTO sensor_readings (topic, payload)
+    VALUES (?1, ?2)
