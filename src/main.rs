@@ -1,4 +1,5 @@
 use mqtt_broker::{
+    WebServer,
     prelude::*,
     config::get_config,
     telemetry,
@@ -29,13 +30,15 @@ async fn main() -> anyhow::Result<()> {
 
     // Give the broker half a second to bind to the port
     tokio::time::sleep(Duration::from_millis(500)).await;
-
-    // Start Local DB Client
     info!("MQTT Broker running on port 1883.");
+
+    let mqtt_client = client::start_mqtt_client("sensor_data.db".to_string())
+        .await
+        .expect("Client failed to start");
     info!("Database listener active. Waiting for sensor data...");
 
-    // This will loop indefinitely
-    client::run_worker(db_path).await?;
+    info!("Web server starting on http://0.0.0.0:3000");
+    WebServer::new(mqtt_client)?.run().await?;
 
     Ok(())
 }

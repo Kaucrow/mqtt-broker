@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-web = "4.13.0"
 anyhow = "1.0.102"
 chrono = "0.4.44"
 config = { version = "0.15.22", features = ["toml", "yaml"] }

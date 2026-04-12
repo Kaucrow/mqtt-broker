@@ -5,6 +5,9 @@ pub mod telemetry;
 pub mod db;
 pub mod broker;
 pub mod client;
+mod webserver;
+
+pub use webserver::WebServer;
 
 use std::sync::OnceLock;
 use queries::Queries;
