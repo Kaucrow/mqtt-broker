@@ -1,4 +1,4 @@
-use mqtt_broker::{
+use mqtt_rest_bridge::{
     WebServer,
     prelude::*,
     config::{get_config, get_broker_config, get_broker_addr},
