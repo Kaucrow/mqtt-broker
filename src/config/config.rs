@@ -2,16 +2,19 @@ use crate::prelude::*;
 use strum::Display;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Config {
     pub debug: bool,
     pub server: ServerConfig,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
-    protocol: ServerProtocol,
+    pub protocol: ServerProtocol,
+    pub docs_endpoint: String,
 }
 
 impl ServerConfig {

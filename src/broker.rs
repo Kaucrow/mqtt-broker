@@ -1,10 +1,12 @@
-use crate::config::get_broker_config;
-use rumqttd::Broker;
+use rumqttd::{
+    Broker,
+    Config as RumqttdConfig
+};
 use std::thread;
 
-pub fn spawn_background_thread() -> anyhow::Result<()> {
+pub fn spawn_background_thread(broker_config: &RumqttdConfig) -> anyhow::Result<()> {
+    let broker_config = broker_config.clone();
     thread::spawn(|| {
-        let broker_config = get_broker_config().expect("Failed to get broker config");
         let mut broker = Broker::new(broker_config);
 
         // Blocking call

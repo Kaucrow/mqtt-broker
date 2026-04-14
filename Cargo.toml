@@ -8,10 +8,12 @@ actix-web = "4.13.0"
 anyhow = "1.0.102"
 chrono = "0.4.44"
 config = { version = "0.15.22", features = ["toml", "yaml"] }
+owo-colors = "4.3.0"
 rumqttc = "0.25.1"
 rumqttd = "0.20.0"
 rusqlite = "0.39.0"
 serde = { version = "1.0.228", features = ["derive"] }
+strip-ansi-escapes = "0.2.1"
 strum = { version = "0.28.0", features = ["derive"] }
 tokio = { version = "1.50.0", features = ["full"] }
 tracing = "0.1.44"

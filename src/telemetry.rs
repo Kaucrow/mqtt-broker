@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::config::Config;
 use tracing_subscriber::{
-    fmt::{self, time::FormatTime},
+    fmt::{self, time::FormatTime, MakeWriter},
     layer::SubscriberExt,
     EnvFilter,
     Layer
@@ -9,6 +9,21 @@ use tracing_subscriber::{
 use tracing_appender;
 use chrono::{Datelike, Timelike};
 use anyhow::Result;
+
+/// A wrapper that strips ANSI escape codes from a writer
+#[derive(Clone)]
+pub struct AnsiStripper<W>(pub W);
+
+impl<'a, W> MakeWriter<'a> for AnsiStripper<W>
+where
+    W: MakeWriter<'a>,
+{
+    type Writer = strip_ansi_escapes::Writer<W::Writer>;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        strip_ansi_escapes::Writer::new(self.0.make_writer())
+    }
+}
 
 /// Log timestamp formatter, with the format `[day-month-year] [hour:minute:second.nanosecond]`.
 #[derive(Clone)]
@@ -55,14 +70,17 @@ pub async fn get_subscriber(config: &Config) -> Result<(impl tracing::Subscriber
     let subscriber = tracing_subscriber::Registry::default()
         .with(fmt::layer()
             .with_target(false)
-            .with_writer(non_blocking)
+            .with_writer(AnsiStripper(non_blocking))
             .with_timer(TimeFormat)
             .with_ansi(false)
+            .with_ansi_sanitization(false)
             .with_filter(file_filter))
         .with(fmt::layer()
             .with_target(false)
             .with_writer(std::io::stdout)
+            .with_timer(TimeFormat)
             .with_ansi(true)
+            .with_ansi_sanitization(false)
             .with_filter(console_filter));
 
     Ok((subscriber, guard))
