@@ -29,7 +29,7 @@ impl TryFrom<String> for Environment {
     }
 }
 
-/// Intelligently finds the base path for config files.
+/// Finds the base path for config files.
 /// In development (cargo run), it uses the project root.
 /// In production (direct execution), it uses the folder containing the executable.
 pub fn get_base_path() -> PathBuf {
@@ -38,10 +38,6 @@ pub fn get_base_path() -> PathBuf {
         return PathBuf::from(manifest_dir);
     }
 
-    // Otherwise, we are in production. Use the directory the executable is in
-    std::env::current_exe()
-        .expect("Failed to determine executable path")
-        .parent()
-        .expect("Executable has no parent directory")
-        .to_path_buf()
+    // Otherwise, we are in production. Use the directory where the app is being executed from.
+    std::env::current_dir().expect("Failed to determine current working directory.")
 }
