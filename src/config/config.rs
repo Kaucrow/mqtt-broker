@@ -22,7 +22,8 @@ pub struct ApiConfig {
     pub protocol: ApiProtocol,
     #[serde(default)]
     pub domain: String,
-    pub docs_endpoint: String,
+    pub api_docs_endpoint: String,
+    pub mqtt_docs_endpoint: String,
 }
 
 impl ApiConfig {

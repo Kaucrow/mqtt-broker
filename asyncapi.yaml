@@ -1,0 +1,135 @@
+asyncapi: 3.1.0
+info:
+  title: Scada Demo MQTT Broker
+  version: 0.1.0
+  description: The central MQTT broker handling device presence, sensor telemetry, and dispatching playback commands.
+
+servers:
+  production:
+    host: monorail.proxy.rlwy.net:47484
+    protocol: mqtt
+    description: Production MQTT Broker
+
+channels:
+  presenceStatusChannel:
+    address: presence/{device}/status
+    description: Topic for devices to be synchronized by broadcasting their online/offline status.
+    parameters:
+      device:
+        $ref: '#/components/parameters/DeviceId'
+    messages:
+      presenceMessage:
+        $ref: '#/components/messages/PresenceMessage'
+
+  sensorTelemetryChannel:
+    address: sensors/{device}
+    description: Topic where devices publish their sensor's readings.
+    parameters:
+      device:
+        $ref: '#/components/parameters/DeviceId'
+    messages:
+      sensorReading:
+        $ref: '#/components/messages/SensorReading'
+
+  devicePlayCommandChannel:
+    address: commands/{device}/play
+    description: Topic used by the backend to trigger audio playback on a device.
+    parameters:
+      device:
+        $ref: '#/components/parameters/DeviceId'
+    messages:
+      playCommand:
+        $ref: '#/components/messages/PlayCommand'
+
+operations:
+  updateDevicePresence:
+    action: send
+    channel:
+      $ref: '#/channels/presenceStatusChannel'
+    summary: Update device presence
+    messages:
+      - $ref: '#/channels/presenceStatusChannel/messages/presenceMessage'
+
+  receiveDevicePresence:
+    action: receive
+    channel:
+      $ref: '#/channels/presenceStatusChannel'
+    summary: Receive other devices' presence.
+    messages:
+      - $ref: '#/channels/presenceStatusChannel/messages/presenceMessage'
+
+  sendTelemetryData:
+    action: send
+    channel:
+      $ref: '#/channels/sensorTelemetryChannel'
+    summary: Send telemetry data
+    messages:
+      - $ref: '#/channels/sensorTelemetryChannel/messages/sensorReading'
+
+  receiveTelemetryData:
+    action: receive
+    channel:
+      $ref: '#/channels/sensorTelemetryChannel'
+    summary: Receive telemetry data.
+    messages:
+      - $ref: '#/channels/sensorTelemetryChannel/messages/sensorReading'
+
+  receivePlayCommand:
+    action: receive
+    channel:
+      $ref: '#/channels/devicePlayCommandChannel'
+    summary: Receive a play command
+    messages:
+      - $ref: '#/channels/devicePlayCommandChannel/messages/playCommand'
+
+components:
+  parameters:
+    DeviceId:
+      description: The unique identifier of the device.
+      enum: 
+        - esp32
+        - raspberry
+
+  messages:
+    PresenceMessage:
+      name: PresenceStatus
+      payload:
+        type: string
+        enum: 
+          - online
+          - offline
+
+    PlayCommand:
+      name: PlayCommand
+      payload:
+        type: string
+        enum: 
+          - "true"
+          - "false"
+          - ""
+        description: |
+          Command to override the audio playback state of the device.
+          * `"true"`: Ignores sensor telemetry & starts audio playback.
+          * `"false"`: Ignores sensor telemetry & stops audio playback.
+          * `""`: Removes the override.
+
+    SensorReading:
+      name: SensorReading
+      summary: Telemetry data
+      payload:
+        type: object
+        required: 
+          - humidity
+          - temperature
+          - threshold
+        properties:
+          humidity:
+            type: integer
+          temperature:
+            type: integer
+          threshold:
+            type: integer
+          over_threshold:
+            type: boolean
+          unit:
+            type: string

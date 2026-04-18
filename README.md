@@ -14,14 +14,22 @@ This project provides the backend infrastructure for a demo SCADA system. It bri
 
 The system features a response mechanism between the two microcontrollers based on their sensor readings and the current command state.
 
+**Cross-Linked Mode (Default)**
 By default (or when "resumed"), the microcontrollers operate in a **Cross-Linked Mode**:
 * The **ESP32** plays a melody based on the sensor values of the **Raspberry Pi**.
 * The **Raspberry Pi** plays a melody based on the sensor values of the **ESP32**.
 
+**Manual Overrides**
 This automatic behavior can be manually overridden via the REST API/Dashboard. The system responds to three specific state commands:
 * `resume` (Payload: `""`): Microcontrollers return to listening to each other's sensors.
 * `play` (Payload: `"true"`): Manual override **ON**. The target device plays its melody continuously, disregarding sensor values entirely.
 * `stop` (Payload: `"false"`): Manual override **OFF**. The target device stops playing entirely, disregarding sensor values.
+
+**Device Synchronization & Presence**
+To ensure the system stays in sync, devices use a presence-tracking mechanism:
+* **Connection Status**: Each microcontroller broadcasts its status to `presence/{device}/status`.
+* **Last Will and Testament (LWT)**: If a device loses its connection unexpectedly, the MQTT broker automatically publishes an `offline` message to this topic.
+* **Automatic Reset**: When a new microcontroller connects (`online`), the other active devices receive this update and **restart their audio playback state**. This ensures that the "Cross-Linked" logic begins fresh whenever the network topology changes.
 
 ## MQTT Topic Structure
 
@@ -35,10 +43,20 @@ Devices subscribe to these topics to listen for override commands from the API:
 * `commands/raspberry/play`
 * `commands/esp32/play`
 
-## REST API Documentation
+### Presence (Synchronization)
+Used for tracking the online/offline status of the devices:
+* `presence/raspberry/status`
+* `presence/esp32/status`
 
-### Interactive Docs (Scalar)
-When the project is running, you can access the full interactive OpenAPI documentation powered by **Scalar**. Simply navigate to the configured docs route, `http://localhost:8080/docs` in your browser.
+## Documentation
+
+When the project is running, you can access the REST API and MQTT broker documentation from a browser.
+
+### REST API (Scalar)
+For the REST API, there's OpenAPI documentation powered by **Scalar**. You can test endpoints & view schemas at `http://localhost:8080/api/docs`.
+
+### MQTT Broker (AsyncAPI)
+You can view topics & message payloads using the **AsyncAPI** documentation for the MQTT broker at `http://localhost:8080/mqtt/docs`.
 
 ## Getting Started
 

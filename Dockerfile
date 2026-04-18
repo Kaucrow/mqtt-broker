@@ -1,18 +1,21 @@
-# ====================
-# Builder
-# ====================
+# =======================
+#   Builder
+# =======================
 FROM rust:1.88-alpine AS builder
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache musl-dev build-base
+RUN apk add --no-cache musl-dev build-base nodejs npm
 
 COPY . .
 
+RUN npm i -g @asyncapi/cli && \
+    asyncapi generate fromTemplate asyncapi.yaml @asyncapi/html-template -o mqtt-docs --force-write
+
 RUN cargo build --release
 
-# ====================
-# Runtime environment
-# ====================
+# =======================
+#   Runtime environment
+# =======================
 FROM alpine:latest
 WORKDIR /app
 
@@ -21,6 +24,8 @@ RUN apk add --no-cache \
     ca-certificates
 
 COPY --from=builder /usr/src/app/target/release/mqtt-rest-bridge /app/mqtt-rest-bridge
+
+COPY --from=builder /usr/src/app/mqtt-docs /app/mqtt-docs
 
 COPY --from=builder /usr/src/app/config /app/config
 COPY --from=builder /usr/src/app/queries /app/queries

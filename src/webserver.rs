@@ -7,6 +7,7 @@ use actix_web::{
     web, post, Responder, App, HttpServer, HttpResponse,
     dev::Server,
 };
+use actix_files::Files;
 use rumqttc::QoS;
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable};
@@ -31,12 +32,18 @@ impl WebServer {
         let data = web::Data::new(AppState { mqtt_client });
         let openapi = ApiDoc::openapi();
 
-        let docs_endpoint = config.api.docs_endpoint.clone();
+        let api_docs_endpoint = config.api.api_docs_endpoint.clone();
+        let mqtt_docs_endpoint = config.api.mqtt_docs_endpoint.clone();
         let server = HttpServer::new(move || {
             App::new()
                 .app_data(data.clone())
                 .service(handle_mqtt_command)
-                .service(Scalar::with_url(format!("/{}", docs_endpoint), openapi.clone()))
+                .service(Scalar::with_url(format!("/{}", api_docs_endpoint), openapi.clone()))
+                .service(
+                    Files::new(&format!("/{}", mqtt_docs_endpoint), "./mqtt-docs")
+                        .index_file("index.html")
+                        .redirect_to_slash_directory()
+                )
         })
         .bind((config.api.host.clone(), config.api.port))?
         .run();
