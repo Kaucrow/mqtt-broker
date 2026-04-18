@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::config::{Config, ServerProtocol};
+use crate::config::Config;
 use actix_web::{
     web, post, Responder, App, HttpServer, HttpResponse,
     dev::Server,
@@ -28,21 +28,17 @@ impl WebServer {
         let data = web::Data::new(AppState { mqtt_client });
         let openapi = ApiDoc::openapi();
 
-        if let ServerProtocol::Http = config.server.protocol {
-            let docs_endpoint = config.server.docs_endpoint.clone();
-            let server = HttpServer::new(move || {
-                App::new()
-                    .app_data(data.clone())
-                    .service(handle_mqtt_command)
-                    .service(Scalar::with_url(format!("/{}", docs_endpoint), openapi.clone()))
-            })
-            .bind((config.server.host.clone(), config.server.port))?
-            .run();
+        let docs_endpoint = config.api.docs_endpoint.clone();
+        let server = HttpServer::new(move || {
+            App::new()
+                .app_data(data.clone())
+                .service(handle_mqtt_command)
+                .service(Scalar::with_url(format!("/{}", docs_endpoint), openapi.clone()))
+        })
+        .bind((config.api.host.clone(), config.api.port))?
+        .run();
 
-            Ok(Self { server })
-        } else {
-            Err(anyhow!("HTTPS protocol not implemented."))
-        }
+        Ok(Self { server })
     }
 
     pub async fn run(self) -> std::io::Result<()> {

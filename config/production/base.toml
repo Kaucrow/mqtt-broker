@@ -1,9 +1,8 @@
 debug = true
 
-[server]
+[api]
 host = "0.0.0.0"
 port = 8080
-protocol = "http"
 docs-endpoint = "docs"
 
 [database]
