@@ -23,5 +23,6 @@ RUN apk add --no-cache \
 COPY --from=builder /usr/src/app/target/release/mqtt-rest-bridge /app/mqtt-rest-bridge
 
 COPY --from=builder /usr/src/app/config /app/config
+COPY --from=builder /usr/src/app/queries /app/queries
 
 CMD ["/app/mqtt-rest-bridge"]
